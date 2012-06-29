@@ -23,7 +23,7 @@ define('LONG_INTERVAL',15);
 
 $shm_id = shmop_open(SHM_IDENTIFIER, "c", 0666, STORAGE_SIZE);
 if($shm_id !== false){
-  $shm_bytes_written = shmop_write($shm_id, "10101010101010101010101010101010101010101010101010101010101010101010101010101",0); #str_pad("1",STORAGE_SIZE, "0"), 0);
+  $shm_bytes_written = shmop_write($shm_id, str_pad("0",STORAGE_SIZE, "0"), 0);
   #close write access - is reopened read-only later 
   shmop_close($shm_id);
 } else {
@@ -37,10 +37,6 @@ if($shm_id !== false){
 $shm_id = shmop_open(SHM_IDENTIFIER, "a", 0666, STORAGE_SIZE);
 
 
-var_dump(shmop_read($shm_id, 0, STORAGE_SIZE));
-
-#shutdown();
-#die();
 if($shm_id !== false){
 
   while(true){
@@ -48,12 +44,12 @@ if($shm_id !== false){
     for($i = 0; $i < count($colors); $i++) {
       $message = shmop_read($shm_id, ($i)* (TIME_STAMP_SIZE+1), TIME_STAMP_SIZE + 1 );
       $onoff = substr($message, 0, 1);
-      var_dump($colors[$i]."#".$onoff);
       if($onoff == "1") $show_colors .= $colors[$i] . " ";
     }
-    #var_dump($show_colors);
-    $command_string = str_replace('%COLORS%', $show_colors, COMMAND_STRING);
-    var_dump($command_string);
+    if($show_colors!="") {
+	$command_string = str_replace('%COLORS%', $show_colors, COMMAND_STRING);
+	system($command_string);
+    }
     sleep(SHORT_INTERVAL);
   }
 }

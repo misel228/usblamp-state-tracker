@@ -13,7 +13,7 @@ $colors = array(
     ,'magenta'
     ,'cyan'
     ,'yellow'
-    ,'orange'
+#    ,'orange'
 );
 //timestamp for each slot after which the message will be ignored
 //stored in the first 10 digits of a message
