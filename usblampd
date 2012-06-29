@@ -1,0 +1,84 @@
+#!/usr/bin/php -q
+<?php
+/*
+ * USBLAM - state tracker
+ * repeatedly calls 'usblamp' to display what's in the memory
+ * see: https://github.com/misel228/dcled-state-tracker
+ */
+
+require 'config.php';
+declare(ticks = 1); #necessary to catch ctrl-c
+
+// Catch Ctrl+C, kill and SIGTERM (Rollback)
+pcntl_signal(SIGTERM, 'sigintShutdown');
+pcntl_signal(SIGINT,  'sigintShutdown');
+
+define('COMMAND_STRING', ' usblamp -d 2500 off %COLORS% off ');
+$placeholders = array('%PRE%', '%MESSAGE%');
+define('SHORT_INTERVAL',2);
+define('LONG_INTERVAL',15);
+
+
+# Init: create a shared memory place and fill it with zeroes
+
+$shm_id = shmop_open(SHM_IDENTIFIER, "c", 0666, STORAGE_SIZE);
+if($shm_id !== false){
+  $shm_bytes_written = shmop_write($shm_id, "10101010101010101010101010101010101010101010101010101010101010101010101010101",0); #str_pad("1",STORAGE_SIZE, "0"), 0);
+  #close write access - is reopened read-only later 
+  shmop_close($shm_id);
+} else {
+  die('Failed at creating shared memory area');
+}
+
+
+
+
+# Loop: reopen area read-only and loop through the slots
+$shm_id = shmop_open(SHM_IDENTIFIER, "a", 0666, STORAGE_SIZE);
+
+
+var_dump(shmop_read($shm_id, 0, STORAGE_SIZE));
+
+#shutdown();
+#die();
+if($shm_id !== false){
+
+  while(true){
+    $show_colors = "";
+    for($i = 0; $i < count($colors); $i++) {
+      $message = shmop_read($shm_id, ($i)* (TIME_STAMP_SIZE+1), TIME_STAMP_SIZE + 1 );
+      $onoff = substr($message, 0, 1);
+      var_dump($colors[$i]."#".$onoff);
+      if($onoff == "1") $show_colors .= $colors[$i] . " ";
+    }
+    #var_dump($show_colors);
+    $command_string = str_replace('%COLORS%', $show_colors, COMMAND_STRING);
+    var_dump($command_string);
+    sleep(SHORT_INTERVAL);
+  }
+}
+
+
+// remove memory area at end of program
+function shutdown() {
+  global $shm_id;
+  shmop_delete($shm_id);
+  shmop_close($shm_id);
+  die('END OF PROGRAM'."\n");
+}
+
+
+/**
+ * Function, that is executed, if script has been killed by
+ * SIGINT: Ctrl+C
+ * SIGTERM: kill
+ *
+ * @param int $signal
+ *
+ * shamelessly plugged from. http://www.phpdevblog.net/2009/05/cli-catching-ctrlc-kill-commands-and-fatal-errors.html
+ */  
+function sigintShutdown($signal) {
+    if ($signal === SIGINT || $signal === SIGTERM) {
+        shutdown();
+    }
+}  
