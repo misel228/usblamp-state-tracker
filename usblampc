@@ -4,7 +4,7 @@
  * USBlamp - state tracker client
  * Takes color and on/off as command line argument and writes it in the memory for the tracker to show
  *
- * see: https://github.com/misel228/dcled-state-tracker
+ * see: https://github.com/misel228/usblamp-state-tracker
  */
 
 require 'config.php';

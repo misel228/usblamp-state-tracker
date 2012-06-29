@@ -1,9 +1,9 @@
 #!/usr/bin/php -q
 <?php
 /*
- * USBLAM - state tracker
+ * USBlamp - state tracker
  * repeatedly calls 'usblamp' to display what's in the memory
- * see: https://github.com/misel228/dcled-state-tracker
+ * see: https://github.com/misel228/usblamp-state-tracker
  */
 
 require 'config.php';
