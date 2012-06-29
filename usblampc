@@ -1,0 +1,50 @@
+#!/usr/bin/php -q
+<?php
+/*
+ * USBlamp - state tracker client
+ * Takes color and on/off as command line argument and writes it in the memory for the tracker to show
+ *
+ * see: https://github.com/misel228/dcled-state-tracker
+ */
+
+require 'config.php';
+#var_dump($argv);die();
+# parse command line arguments
+if(isset($argv[1]) && $argv[1]=='-h') {
+  print_help_message();die();
+}
+
+if(!isset($argv[1]) || !in_array($argv[1], $colors) || !isset($argv[2]) || !in_array($argv[2], array("on","off"))) {
+  print_help_message();die();
+}
+
+$color    = $argv[1];
+$onoff    = $argv[2]=="on" ? 1:0;
+
+$r_colors = array_flip($colors);
+
+
+# Init: Open shared memory for writing
+$shm_id = shmop_open(SHM_IDENTIFIER, "w", 0666, STORAGE_SIZE);
+
+if($shm_id !== false) {
+
+  #write the message into memory
+
+  $address = $r_colors[$color] * (TIME_STAMP_SIZE + 1 );
+  $time_stamp = str_pad(time(),TIME_STAMP_SIZE, "0", STR_PAD_LEFT);
+  $shm_bytes_written = shmop_write($shm_id, $onoff.$time_stamp, $address );
+  shmop_close($shm_id);
+}
+
+function print_help_message() {
+    global $colors;
+  $msg  = "USBlamp - state tracker client.\n";
+  $msg .= "Usage:\t\t usblampc <color> on|off\n";
+  $msg .= "<color>:\t2 on of the following colors\n";
+  foreach($colors as $color) {
+    $msg .= $color . " ";
+  }
+  $msg .= "\n";
+  echo $msg;
+}
