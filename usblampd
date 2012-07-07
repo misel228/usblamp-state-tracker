@@ -6,7 +6,7 @@
  * see: https://github.com/misel228/usblamp-state-tracker
  */
 
-require 'config.php';
+require dirname(__FILE__).'/usblamp-config.php';
 declare(ticks = 1); #necessary to catch ctrl-c
 
 // Catch Ctrl+C, kill and SIGTERM (Rollback)
@@ -14,7 +14,6 @@ pcntl_signal(SIGTERM, 'sigintShutdown');
 pcntl_signal(SIGINT,  'sigintShutdown');
 
 define('COMMAND_STRING', ' usblamp -d 2500 off %COLORS% off ');
-$placeholders = array('%PRE%', '%MESSAGE%');
 define('SHORT_INTERVAL',2);
 define('LONG_INTERVAL',15);
 
@@ -44,7 +43,8 @@ if($shm_id !== false){
     for($i = 0; $i < count($colors); $i++) {
       $message = shmop_read($shm_id, ($i)* (TIME_STAMP_SIZE+1), TIME_STAMP_SIZE + 1 );
       $onoff = substr($message, 0, 1);
-      if($onoff == "1") $show_colors .= $colors[$i] . " ";
+      $timestamp = substr($message, 1);
+      if($onoff == "1" && (time()-86400) <= $timestamp ) $show_colors .= $colors[$i] . " ";
     }
     if($show_colors!="") {
 	$command_string = str_replace('%COLORS%', $show_colors, COMMAND_STRING);

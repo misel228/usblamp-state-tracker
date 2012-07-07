@@ -7,7 +7,7 @@
  * see: https://github.com/misel228/usblamp-state-tracker
  */
 
-require 'config.php';
+require dirname(__FILE__).'/usblamp-config.php';
 #var_dump($argv);die();
 # parse command line arguments
 if(isset($argv[1]) && $argv[1]=='-h') {
